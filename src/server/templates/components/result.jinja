@@ -1,0 +1,84 @@
+<script>
+    // Tab switching functionality
+    function switchTab(tabName) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll('[data-tab-content]');
+        tabContents.forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        // Remove active state from all tabs
+        const tabs = document.querySelectorAll('[data-tab]');
+        tabs.forEach(tab => {
+            tab.classList.remove('bg-[#4ECDC4]', 'shadow-[2px_2px_0px_rgba(0,0,0,1)]', '-translate-y-0.5');
+            tab.classList.add('bg-[#FFF6E9]', 'text-gray-900');
+        });
+
+        // Show selected tab content
+        const selectedContent = document.querySelector(`[data-tab-content="${tabName}"]`);
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+        }
+
+        // Set active state on selected tab
+        const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+        if (selectedTab) {
+            selectedTab.classList.remove('bg-[#FFF6E9]');
+            selectedTab.classList.add('bg-[#4ECDC4]', 'shadow-[2px_2px_0px_rgba(0,0,0,1)]', '-translate-y-0.5');
+        }
+    }
+
+    // Initialize with Overview tab active
+    document.addEventListener('DOMContentLoaded', function() {
+        switchTab('overview');
+    });
+</script>
+{% if result %}
+    <div class="mt-10" data-results>
+        <!-- Hidden repository context -->
+        <div class="hidden" data-summary>{{ summary }}</div>
+        <div class="hidden" data-content>{{ content }}</div>
+        <!-- Tab Navigation -->
+        <div class="flex gap-4 mb-8">
+            <button data-tab="overview"
+                    onclick="switchTab('overview')"
+                    class="px-6 py-3 rounded-lg border-2 border-gray-900 font-medium transition-all duration-200 hover:scale-105 flex items-center gap-2 bg-[#4ECDC4] shadow-[2px_2px_0px_rgba(0,0,0,1)] -translate-y-0.5">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd" />
+                </svg>
+                Overview
+            </button>
+            <button data-tab="issues"
+                    onclick="switchTab('issues')"
+                    class="px-6 py-3 rounded-lg border-2 border-gray-900 font-medium transition-all duration-200 hover:scale-105 flex items-center gap-2 bg-[#FFF6E9] text-gray-900">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                Issues
+            </button>
+            <button data-tab="chat"
+                    onclick="switchTab('chat')"
+                    class="px-6 py-3 rounded-lg border-2 border-gray-900 font-medium transition-all duration-200 hover:scale-105 flex items-center gap-2 bg-[#FFF6E9] text-gray-900">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                    <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                </svg>
+                Chat
+            </button>
+        </div>
+        <!-- Tab Contents -->
+        <div class="relative">
+            <div class="w-full h-full absolute inset-0 bg-gradient-to-br from-[#4ECDC4] to-[#FF6B6B] rounded-xl translate-y-2 translate-x-2 opacity-80">
+            </div>
+            <div class="bg-[#FFF6E9] rounded-xl border-[3px] border-gray-900 p-8 relative z-20 shadow-xl">
+                <!-- Overview Tab -->
+                <div data-tab-content="overview">{% include 'components/tabs/overview.jinja' %}</div>
+                <!-- Issues Tab -->
+                <div data-tab-content="issues" class="hidden">{% include 'components/tabs/issues.jinja' %}</div>
+                <!-- Chat Tab -->
+                <div data-tab-content="chat" class="hidden">{% include 'components/tabs/chat.jinja' %}</div>
+            </div>
+        </div>
+    </div>
+{% endif %}

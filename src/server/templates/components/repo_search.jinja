@@ -1,0 +1,178 @@
+<script>
+    // Add keyboard event listener for Enter key
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('repo_search_query');
+        if (input) {
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' && document.activeElement === input) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    searchRepositories(event);
+                }
+            });
+        }
+    });
+
+    function searchRepositories(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const searchQuery = document.getElementById('repo_search_query').value.trim();
+        if (!searchQuery) return;
+
+        // Show loading state
+        const resultsContainer = document.getElementById('search-results');
+        resultsContainer.innerHTML = '<div class="text-center py-4"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div><p class="mt-2 text-gray-700">Searching papers...</p></div>';
+
+        // Send search request to backend
+        fetch('/search_cvpr_papers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'query': searchQuery
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                resultsContainer.innerHTML = `<div class="text-center py-4 text-red-500">${data.error}</div>`;
+                return;
+            }
+
+            // Display results
+            if (data.papers && data.papers.length > 0) {
+                let html = '<div class="grid gap-4">';
+                data.papers.forEach(paper => {
+                    html += `
+                        <div class="bg-forky-cream rounded-lg border-2 border-gray-900 p-4 hover:bg-[#4ECDC4]/10 transition-all duration-200 relative">
+                            <div class="w-full h-full absolute inset-0 bg-[#4ECDC4] rounded-lg translate-y-1 translate-x-1 opacity-80 -z-10"></div>
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold text-gray-900">${paper.title}</h3>
+                                    <p class="text-gray-600 mt-1">${paper.authors.join(', ')}</p>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <p class="text-gray-700 text-sm line-clamp-3">${paper.abstract}</p>
+                            </div>
+                            <div class="mt-4">
+                                <details class="group">
+                                    <summary class="cursor-pointer text-gray-900 font-medium hover:text-[#4ECDC4] transition-colors">
+                                        Why this paper matches your query
+                                        <span class="inline-block transition-transform group-open:rotate-180">▼</span>
+                                    </summary>
+                                    <div class="mt-2 p-3 bg-[#4ECDC4]/10 rounded-lg">
+                                        <p class="text-gray-700 text-sm">${paper.match_reason}</p>
+                                    </div>
+                                </details>
+                            </div>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                ${paper.poster_session ? `
+                                    <span class="px-2 py-1 bg-[#4ECDC4]/10 text-gray-700 rounded-full text-sm">
+                                        ${paper.poster_session}${paper.poster_location ? ` - ${paper.poster_location}` : ''}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <div class="mt-4 flex gap-2">
+                                <a href="${paper.pdf}" target="_blank" rel="noopener noreferrer" 
+                                   class="flex-1 py-2 bg-[#4ECDC4] hover:bg-[#4ECDC4]/90 text-gray-900 rounded-lg border-2 border-gray-900 transition-all duration-200 text-sm font-bold text-center">
+                                    View Paper
+                                </a>
+                                ${paper.supp ? `
+                                    <a href="${paper.supp}" target="_blank" rel="noopener noreferrer" 
+                                       class="flex-1 py-2 bg-forky-red hover:bg-forky-red/90 text-white rounded-lg border-2 border-gray-900 transition-all duration-200 text-sm font-bold text-center">
+                                        Supplementary
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                resultsContainer.innerHTML = html;
+            } else {
+                resultsContainer.innerHTML = '<div class="text-center py-4 text-gray-500">No papers found</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            resultsContainer.innerHTML = '<div class="text-center py-4 text-red-500">Error searching papers</div>';
+        });
+    }
+
+    function useRepository(category) {
+        const input = document.getElementById('repo_search_query');
+        if (input) {
+            input.value = category;
+            // Trigger search
+            const event = new Event('submit');
+            document.getElementById('repoSearchForm').dispatchEvent(event);
+        }
+    }
+</script>
+<div class="mb-12">
+    <div class="relative">
+        <div class="w-full h-full absolute inset-0 bg-forky-red rounded-xl translate-y-2 translate-x-2 opacity-80"></div>
+        <div class="rounded-xl relative z-20 pl-8 sm:pl-10 pr-8 sm:pr-16 py-8 border-[3px] border-gray-900 bg-[#FFF6E9]">
+            <h2 class="text-2xl font-bold mb-6 text-gray-900">Explore CVPR 2025 Papers</h2>
+            <form class="flex md:flex-row flex-col w-full h-full justify-center items-stretch space-y-5 md:space-y-0 md:space-x-5"
+                  id="repoSearchForm"
+                  onsubmit="searchRepositories(event)">
+                <div class="relative w-full h-full">
+                    <div class="w-full h-full rounded bg-forky-red translate-y-1 translate-x-1 absolute inset-0 z-10 opacity-70"></div>
+                    <input type="text"
+                           name="repo_search_query"
+                           id="repo_search_query"
+                           placeholder="Search papers by topic, algorithm, or keywords..."
+                           required
+                           class="border-[3px] w-full relative z-20 border-gray-900 placeholder-gray-900/60 text-lg font-medium focus:outline-none py-3.5 px-6 rounded bg-[#FFF6E9]">
+                </div>
+                <div class="relative w-auto flex-shrink-0 h-full group">
+                    <div class="w-full h-full rounded bg-forky-red translate-y-1 translate-x-1 absolute inset-0 z-10 opacity-70"></div>
+                    <button type="submit"
+                            class="py-3.5 rounded px-6 group-hover:-translate-y-px group-hover:-translate-x-px ease-out duration-300 z-20 relative w-full border-[3px] border-gray-900 font-bold bg-forky-red tracking-wide text-lg flex-shrink-0 text-white hover:bg-forky-red/90 transition-all">
+                        Search Papers
+                    </button>
+                </div>
+            </form>
+            <!-- Research categories section -->
+            <div class="mt-8">
+                <p class="text-gray-900 font-medium mb-1">Research Categories:</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="useRepository('Search for relevant paper in Robotics')"
+                            class="px-4 py-1 bg-[#FFF6E9] hover:bg-[#FFD93D] text-gray-900 rounded transition-all duration-200 border-[3px] border-gray-900 relative hover:-translate-y-px hover:-translate-x-px font-bold">
+                        Robotics
+                    </button>
+                    <button onclick="useRepository('Search for relevant paper in Reinforcement learning')"
+                            class="px-4 py-1 bg-[#FFF6E9] hover:bg-[#FFD93D] text-gray-900 rounded transition-all duration-200 border-[3px] border-gray-900 relative hover:-translate-y-px hover:-translate-x-px font-bold">
+                        Reinforcement Learning
+                    </button>
+                    <button onclick="useRepository('Search for relevant paper in Deep learning')"
+                            class="px-4 py-1 bg-[#FFF6E9] hover:bg-[#FFD93D] text-gray-900 rounded transition-all duration-200 border-[3px] border-gray-900 relative hover:-translate-y-px hover:-translate-x-px font-bold">
+                        Deep Learning
+                    </button>
+                    <button onclick="useRepository('Search for relevant paper in 3D vision')"
+                            class="px-4 py-1 bg-[#FFF6E9] hover:bg-[#FFD93D] text-gray-900 rounded transition-all duration-200 border-[3px] border-gray-900 relative hover:-translate-y-px hover:-translate-x-px font-bold">
+                        3D Vision
+                    </button>
+                    <button onclick="useRepository('Search for relevant paper in Multimodal')"
+                            class="px-4 py-1 bg-[#FFF6E9] hover:bg-[#FFD93D] text-gray-900 rounded transition-all duration-200 border-[3px] border-gray-900 relative hover:-translate-y-px hover:-translate-x-px font-bold">
+                        Multimodal
+                    </button>
+                    <button onclick="useRepository('Search for relevant paper in Generative AI')"
+                            class="px-4 py-1 bg-[#FFF6E9] hover:bg-[#FFD93D] text-gray-900 rounded transition-all duration-200 border-[3px] border-gray-900 relative hover:-translate-y-px hover:-translate-x-px font-bold">
+                        Generative AI
+                    </button>
+                    <button onclick="useRepository('Search for relevant paper in Medical imaging')"
+                            class="px-4 py-1 bg-[#FFF6E9] hover:bg-[#FFD93D] text-gray-900 rounded transition-all duration-200 border-[3px] border-gray-900 relative hover:-translate-y-px hover:-translate-x-px font-bold">
+                        Medical Imaging
+                    </button>
+                </div>
+            </div>
+            <!-- Results container -->
+            <div id="search-results" class="mt-8"></div>
+        </div>
+    </div>
+</div>
