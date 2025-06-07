@@ -47,7 +47,9 @@ else:
         "*.forky.com",
         "localhost",
         "127.0.0.1",
-        "forkycvpr2025-364607428894.us-central1.run.app/"
+        "forkycvpr2025-364607428894.us-central1.run.app",
+        "0.0.0.0",
+        "*"  # Allow all hosts
     ]
     allowed_hosts = default_allowed_hosts
 
