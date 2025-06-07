@@ -2,6 +2,10 @@
 
 🌟 Powered by Google Cloud credits through the #AISprint program ✨
 
+
+https://github.com/user-attachments/assets/cdd04252-d8bb-49e3-9679-702c44092c75
+
+
 I know how challenging it can be to navigate through CVPR's massive collection of over 2,500 amazing papers from around the world. The fear of missing out on groundbreaking research that could help your company, research group, or personal project is real. That's why I created Forky for CVPR - to make your conference experience more manageable and productive!
 
 ## 🎯 What Forky for CVPR Does
